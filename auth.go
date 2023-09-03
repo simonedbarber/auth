@@ -5,14 +5,14 @@ import (
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/jinzhu/gorm"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/mailer"
-	"github.com/qor/mailer/logger"
-	"github.com/qor/redirect_back"
-	"github.com/qor/render"
-	"github.com/qor/session/manager"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/mailer"
+	"github.com/simonedbarber/mailer/logger"
+	"github.com/simonedbarber/redirect_back"
+	"github.com/simonedbarber/render"
+	"github.com/simonedbarber/session/manager"
+	"gorm.io/gorm"
 )
 
 // Auth auth struct
@@ -25,9 +25,9 @@ type Auth struct {
 
 // Config auth config
 type Config struct {
-	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value, refer https://github.com/qor/auth/blob/master/utils.go#L32
+	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value, refer https://github.com/simonedbarber/auth/blob/master/utils.go#L32
 	DB *gorm.DB
-	// AuthIdentityModel a model used to save auth info, like email/password, OAuth token, linked user's ID, https://github.com/qor/auth/blob/master/auth_identity/auth_identity.go is the default implemention
+	// AuthIdentityModel a model used to save auth info, like email/password, OAuth token, linked user's ID, https://github.com/simonedbarber/auth/blob/master/auth_identity/auth_identity.go is the default implemention
 	AuthIdentityModel interface{}
 	// UserModel should be point of user struct's instance, it could be nil, then Auth will assume there is no user linked to auth info, and will return current auth info when get current user
 	UserModel interface{}
@@ -36,22 +36,22 @@ type Config struct {
 	// ViewPaths prepend views paths for auth
 	ViewPaths []string
 
-	// Auth is using [Render](https://github.com/qor/render) to render pages, you could configure it with your project's Render if you have advanced usage like [BindataFS](https://github.com/qor/bindatafs)
+	// Auth is using [Render](https://github.com/simonedbarber/render) to render pages, you could configure it with your project's Render if you have advanced usage like [BindataFSgithub.com/simonedbarber/b.com/simonedbarber/bindatafs)
 	Render *render.Render
-	// Auth is using [Mailer](https://github.com/qor/mailer) to send email, by default, it will print email into console, you need to configure it to send real one
+	// Auth is using [Mailer](https://github.com/simonedbarber/mailer) to send email, by default, it will print email into console, you need to configure it to send real one
 	Mailer *mailer.Mailer
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer UserStorerInterface
-	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data and flash messages between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly. refer [session](https://github.com/qor/session) for more details
+	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data and flash messages between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly. refer [session](https://github.com/simonedbarber/session) for more details
 	SessionStorer SessionStorerInterface
 	// Redirector redirect user to a new page after registered, logged, confirmed...
 	Redirector RedirectorInterface
 
-	// LoginHandler defined behaviour when request `{Auth Prefix}/login`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// LoginHandler defined behaviour when request `{Auth Prefix}/login`, default behaviour defined in http://godoc.org/github.com/simonedbarber/auth#pkg-variables
 	LoginHandler func(*Context, func(*Context) (*claims.Claims, error))
-	// RegisterHandler defined behaviour when request `{Auth Prefix}/register`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// RegisterHandler defined behaviour when request `{Auth Prefix}/register`, default behaviour defined in http://godoc.org/github.com/simonedbarber/auth#pkg-variables
 	RegisterHandler func(*Context, func(*Context) (*claims.Claims, error))
-	// LogoutHandler defined behaviour when request `{Auth Prefix}/logout`, default behaviour defined in http://godoc.org/github.com/qor/auth#pkg-variables
+	// LogoutHandler defined behaviour when request `{Auth Prefix}/logout`, default behaviour defined in http://godoc.org/github.com/simonedbarber/auth#pkg-variables
 	LogoutHandler func(*Context)
 }
 
@@ -116,7 +116,7 @@ func New(config *Config) *Auth {
 		config.Render.RegisterViewPath(viewPath)
 	}
 
-	config.Render.RegisterViewPath("github.com/qor/auth/views")
+	config.Render.RegisterViewPath("github.com/simonedbarber/auth/views")
 
 	auth := &Auth{Config: config}
 

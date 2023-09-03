@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"reflect"
 
+	"errors"
+
 	"github.com/jinzhu/copier"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
+	"gorm.io/gorm"
 )
 
 // UserStorerInterface user storer interface
@@ -42,7 +45,7 @@ func (UserStorer) Get(Claims *claims.Claims, context *Context) (user interface{}
 		}
 	)
 
-	if !tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).First(authIdentity).RecordNotFound() {
+	if err := tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).First(authIdentity).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 		if context.Auth.Config.UserModel != nil {
 			if authBasicInfo, ok := authIdentity.(interface {
 				ToClaims() *claims.Claims
@@ -69,7 +72,11 @@ func (UserStorer) Save(schema *Schema, context *Context) (user interface{}, user
 		currentUser := reflect.New(utils.ModelType(context.Auth.Config.UserModel)).Interface()
 		copier.Copy(currentUser, schema)
 		err = tx.Create(currentUser).Error
-		return currentUser, fmt.Sprint(tx.NewScope(currentUser).PrimaryKeyValue()), err
+
+		primaryField := tx.Statement.Schema.PrioritizedPrimaryField
+		currentUserID := fmt.Sprintf("%v", reflect.Indirect(reflect.ValueOf(user)).FieldByName(primaryField.Name).Interface())
+
+		return currentUser, currentUserID, err
 	}
 	return nil, "", nil
 }

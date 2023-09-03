@@ -9,4 +9,6 @@ var (
 	ErrInvalidAccount = errors.New("invalid account")
 	// ErrUnauthorized unauthorized error
 	ErrUnauthorized = errors.New("Unauthorized")
+	// ErrInvalidRequest invalid request
+	ErrInvalidRequest = errors.New("invalid request")
 )

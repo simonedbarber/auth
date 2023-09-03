@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
+	"gorm.io/gorm"
 )
 
 var UserInfoURL = "https://graph.facebook.com/me?access_token="
@@ -108,7 +109,7 @@ func New(config *Config) *FacebookProvider {
 				authInfo.Provider = provider.GetName()
 				authInfo.UID = schema.UID
 
-				if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				if err := tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 					return authInfo.ToClaims(), nil
 				}
 
@@ -138,7 +139,7 @@ func (FacebookProvider) GetName() string {
 
 // ConfigAuth config auth
 func (provider FacebookProvider) ConfigAuth(auth *auth.Auth) {
-	auth.Render.RegisterViewPath("github.com/qor/auth/providers/facebook/views")
+	auth.Render.RegisterViewPath("github.com/simonedbarber/auth/providers/facebook/views")
 }
 
 // OAuthConfig return oauth config based on configuration

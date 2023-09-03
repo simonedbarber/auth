@@ -7,14 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"html/template"
+	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/mailer"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
+	"errors"
+
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/mailer"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"gorm.io/gorm"
 )
 
 var (
@@ -104,7 +107,7 @@ var DefaultResetPasswordHandler = func(context *auth.Context) error {
 			authInfo.UID = claims.Id
 			authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 
-			if tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).First(authIdentity).RecordNotFound() {
+			if err := tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return auth.ErrInvalidAccount
 			}
 
@@ -114,7 +117,7 @@ var DefaultResetPasswordHandler = func(context *auth.Context) error {
 					now := time.Now()
 					authInfo.ConfirmedAt = &now
 				}
-				err = tx.Model(authIdentity).Update(authInfo).Error
+				err = tx.Model(authIdentity).Updates(authInfo).Error
 			}
 		}
 	}

@@ -7,10 +7,10 @@ import (
 	"reflect"
 
 	"github.com/google/go-github/github"
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
 	"golang.org/x/oauth2"
 )
 
@@ -92,7 +92,7 @@ func New(config *Config) *GithubProvider {
 				authInfo.Provider = provider.GetName()
 				authInfo.UID = fmt.Sprint(*user.ID)
 
-				if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				if err := tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 					return authInfo.ToClaims(), nil
 				}
 

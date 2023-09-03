@@ -1,13 +1,14 @@
 package authority
 
 import (
-	"html/template"
 	"net/http"
 
-	"github.com/qor/auth"
-	"github.com/qor/middlewares"
-	"github.com/qor/roles"
-	"github.com/qor/session"
+	"github.com/simonedbarber/go-template/html/template"
+
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/middlewares"
+	"github.com/simonedbarber/roles"
+	"github.com/simonedbarber/session"
 )
 
 var (

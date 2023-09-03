@@ -3,8 +3,8 @@ package auth_identity
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
-	"github.com/qor/auth/claims"
+	"github.com/simonedbarber/auth/claims"
+	"gorm.io/gorm"
 )
 
 // AuthIdentity auth identity session model
@@ -30,4 +30,7 @@ func (basic Basic) ToClaims() *claims.Claims {
 	claims.Id = basic.UID
 	claims.UserID = basic.UserID
 	return &claims
+}
+func (basic Basic) DisplayName() string {
+	return basic.UID
 }

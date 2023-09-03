@@ -1,15 +1,25 @@
 package password
 
 import (
+	"encoding/json"
+	"log"
 	"reflect"
 	"strings"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
+	"errors"
+	"github.com/jinzhu/copier"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"gorm.io/gorm"
 )
+
+type Login struct {
+	Login    string
+	Password string
+}
 
 // DefaultAuthorizeHandler default authorize handler
 var DefaultAuthorizeHandler = func(context *auth.Context) (*claims.Claims, error) {
@@ -18,13 +28,26 @@ var DefaultAuthorizeHandler = func(context *auth.Context) (*claims.Claims, error
 		req         = context.Request
 		tx          = context.Auth.GetDB(req)
 		provider, _ = context.Provider.(*Provider)
+		login       Login
 	)
 
-	req.ParseForm()
 	authInfo.Provider = provider.GetName()
-	authInfo.UID = strings.TrimSpace(req.Form.Get("login"))
 
-	if tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).RecordNotFound() {
+	if req.Header.Get("Content-Type") == "application/json" {
+		dec := json.NewDecoder(req.Body)
+		err := dec.Decode(&login)
+
+		if err != nil {
+			return nil, auth.ErrInvalidRequest
+		}
+
+		authInfo.UID = login.Login
+	} else {
+		req.ParseForm()
+		authInfo.UID = strings.TrimSpace(req.Form.Get("login"))
+	}
+
+	if err := tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, auth.ErrInvalidAccount
 	}
 
@@ -34,9 +57,14 @@ var DefaultAuthorizeHandler = func(context *auth.Context) (*claims.Claims, error
 
 		return nil, ErrUnconfirmed
 	}
-
-	if err := provider.Encryptor.Compare(authInfo.EncryptedPassword, strings.TrimSpace(req.Form.Get("password"))); err == nil {
-		return authInfo.ToClaims(), err
+	if req.Header.Get("Content-type") == "application/json" {
+		if err := provider.Encryptor.Compare(authInfo.EncryptedPassword, strings.TrimSpace(login.Password)); err == nil {
+			return authInfo.ToClaims(), err
+		}
+	} else {
+		if err := provider.Encryptor.Compare(authInfo.EncryptedPassword, strings.TrimSpace(req.Form.Get("password"))); err == nil {
+			return authInfo.ToClaims(), err
+		}
 	}
 
 	return nil, auth.ErrInvalidPassword
@@ -66,7 +94,7 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 	authInfo.Provider = provider.GetName()
 	authInfo.UID = strings.TrimSpace(req.Form.Get("login"))
 
-	if !tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).RecordNotFound() {
+	if err := tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, auth.ErrInvalidAccount
 	}
 
@@ -83,6 +111,10 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 
 		// create auth identity
 		authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
+		copier.Copy(authIdentity, authInfo)
+		log.Printf("AuthIdentity: %v", authIdentity)
+		log.Printf("AuthInfo: %v", authInfo)
+
 		if err = tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).FirstOrCreate(authIdentity).Error; err == nil {
 			if provider.Config.Confirmable {
 				context.SessionStorer.Flash(context.Writer, req, session.Message{Message: ConfirmFlashMessage, Type: "success"})

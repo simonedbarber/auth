@@ -3,8 +3,8 @@ package auth
 import (
 	"net/http"
 
-	"github.com/qor/auth/claims"
-	"github.com/qor/session"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/session"
 )
 
 // Context context

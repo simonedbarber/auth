@@ -3,17 +3,19 @@ package twitter
 import (
 	"encoding/json"
 	"errors"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 
+	"github.com/simonedbarber/go-template/html/template"
+
 	"github.com/mrjones/oauth"
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"gorm.io/gorm"
 )
 
 var UserInfoURL = "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
@@ -104,7 +106,7 @@ func New(config *Config) *Provider {
 			authInfo.Provider = provider.GetName()
 			authInfo.UID = schema.UID
 
-			if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+			if err := tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 				return authInfo.ToClaims(), nil
 			}
 
@@ -135,7 +137,7 @@ func (Provider) GetName() string {
 // ConfigAuth config auth
 func (provider *Provider) ConfigAuth(auth *auth.Auth) {
 	provider.Auth = auth
-	provider.Auth.Render.RegisterViewPath("github.com/qor/auth/providers/twitter/views")
+	provider.Auth.Render.RegisterViewPath("github.com/simonedbarber/auth/providers/twitter/views")
 }
 
 // NewConsumer new twitter consumer

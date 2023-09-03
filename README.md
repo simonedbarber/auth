@@ -2,7 +2,7 @@
 
 Auth is a modular authentication system for web development in Golang, it provides different authentication backends to accelerate your development.
 
-Currently Auth has database password, github, google, facebook, twitter authentication support, and it is fairly easy to add other support based on [Auth's Provider interface](https://godoc.org/github.com/qor/auth#Provider)
+Currently Auth has database password, github, google, facebook, twitter authentication support, and it is fairly easy to add other support based on [Auth's Provider interface](https://godoc.org/github.com/simonedbarber/auth#Provider)
 
 ## Quick Start
 
@@ -20,14 +20,14 @@ Here is an example:
 package main
 
 import (
-  "github.com/qor/auth"
-  "github.com/qor/auth/auth_identity"
-  "github.com/qor/auth/providers/github"
-  "github.com/qor/auth/providers/google"
-  "github.com/qor/auth/providers/password"
-  "github.com/qor/auth/providers/facebook"
-  "github.com/qor/auth/providers/twitter"
-  "github.com/qor/session/manager"
+  "github.com/simonedbarber/auth"
+  "github.com/simonedbarber/auth/auth_identity"
+  "github.com/simonedbarber/auth/providers/github"
+  "github.com/simonedbarber/auth/providers/google"
+  "github.com/simonedbarber/auth/providers/password"
+  "github.com/simonedbarber/auth/providers/facebook"
+  "github.com/simonedbarber/auth/providers/twitter"
+  "github.com/simonedbarber/session/manager"
 
   _ "github.com/mattn/go-sqlite3"
 
@@ -93,7 +93,7 @@ And it could be even easier with [Auth Themes](#auth-themes), you could integrat
 
 ## Usage
 
-Auth has many configurations that could be used to customize it for different usage, lets start from Auth's [Config](http://godoc.org/github.com/qor/auth#Config).
+Auth has many configurations that could be used to customize it for different usage, lets start from Auth's [Config](http://godoc.org/github.com/simonedbarber/auth#Config).
 
 ### Models
 
@@ -107,7 +107,7 @@ If this is not required for you, you could just set those two models to same one
 
 Different provider usually use different information to login, like provider `password` use username/password, `github` use github user ID, so for each provider, it will save those information into its own record.
 
-You are not necessary to set `AuthIdentityModel`, Auth has a default [definition of AuthIdentityModel](http://godoc.org/github.com/qor/auth/auth_identity#AuthIdentity), in case of you want to change it, make sure you have [auth_identity.Basic](http://godoc.org/github.com/qor/auth/auth_identity#Basic) embedded, as `Auth` assume you have same data structure in your database, so it could query/create records with SQL.
+You are not necessary to set `AuthIdentityModel`, Auth has a default [definition of AuthIdentityModel](http://godoc.org/github.com/simonedbarber/auth/auth_identity#AuthIdentity), in case of you want to change it, make sure you have [auth_identity.Basic](http://godoc.org/github.com/simonedbarber/auth/auth_identity#Basic) embedded, as `Auth` assume you have same data structure in your database, so it could query/create records with SQL.
 
 * `UserModel`
 
@@ -117,23 +117,23 @@ But usually your application will have a `User` model, after you set its value, 
 
 ### Customize views
 
-Auth using [Render](http://github.com/qor/render) to render pages, you could refer it for how to register func maps, extend views paths, also be sure to refer [BindataFS](https://github.com/qor/bindatafs) if you want to compile your application into a binary.
+Auth using [Render](http://github.com/simonedbarber/render) to render pages, you could refer it for how to register func maps, extend views paths, also be sure to refer [BindataFS](https://github.com/simonedbarber/bindatafs) if you want to compile your application into a binary.
 
-If you want to preprend view paths, you could add them to `ViewPaths`, which would be helpful if you want to overwrite the default (ugly) login/register pages or develop auth themes like [https://github.com/qor/auth_themes](https://github.com/qor/auth_themes)
+If you want to preprend view paths, you could add them to `ViewPaths`, which would be helpful if you want to overwrite the default (ugly) login/register pages or develop auth themes like [https://github.com/simonedbarber/auth_themes](https://github.com/simonedbarber/auth_themes)
 
 ### Sending Emails
 
-Auth using [Mailer](http://github.com/qor/mailer) to send emails, by default, Auth will print emails to console, please configure it to send real one.
+Auth using [Mailer](http://github.com/simonedbarber/mailer) to send emails, by default, Auth will print emails to console, please configure it to send real one.
 
 ### User Storer
 
-Auth created a default UserStorer to get/save user based on your `AuthIdentityModel`, `UserModel`'s definition, in case of you want to change it, you could implement your own [User Storer](http://godoc.org/github.com/qor/auth#UserStorerInterface)
+Auth created a default UserStorer to get/save user based on your `AuthIdentityModel`, `UserModel`'s definition, in case of you want to change it, you could implement your own [User Storer](http://godoc.org/github.com/simonedbarber/auth#UserStorerInterface)
 
 ### Session Storer
 
-Auth also has a default way to handle sessions, flash messages, which could be overwrited by implementing [Session Storer Interface](http://godoc.org/github.com/qor/auth#SessionStorerInterface).
+Auth also has a default way to handle sessions, flash messages, which could be overwrited by implementing [Session Storer Interface](http://godoc.org/github.com/simonedbarber/auth#SessionStorerInterface).
 
-By default, Auth is using [session](https://github.com/qor/session)'s default manager to save data into cookies, but in order to save cookies correctly, you have to register session's Middleware into your router, e.g:
+By default, Auth is using [session](https://github.com/simonedbarber/session)'s default manager to save data into cookies, but in order to save cookies correctly, you have to register session's Middleware into your router, e.g:
 
 ```go
 func main() {
@@ -149,7 +149,7 @@ func main() {
 
 After some Auth actions, like logged, registered or confirmed, Auth will redirect user to some URL, you could configure which page to redirect with `Redirector`, by default, will redirct to home page.
 
-If you want to redirect to last visited page, [redirect_back](https://github.com/qor/redirect_back) is for you, you could configure it and use it as the Redirector, like:
+If you want to redirect to last visited page, [redirect_back](https://github.com/simonedbarber/redirect_back) is for you, you could configure it and use it as the Redirector, like:
 
 ```go
 var RedirectBack = redirect_back.New(&redirect_back.Config{
@@ -173,12 +173,12 @@ http.ListenAndServe(":9000", manager.SessionManager.Middleware(RedirectBack.Midd
 
 ### Auth Themes
 
-In order to save more developer's effort, we have created some [auth themes](https://github.com/qor/auth_themes).
+In order to save more developer's effort, we have created some [auth themes](https://github.com/simonedbarber/auth_themes).
 
 It usually has well designed pages, if you don't much custom requirements, you could just have few lines to make Auth system ready to use for your application, for example:
 
 ```go
-import "github.com/qor/auth_themes/clean"
+import "github.com/simonedbarber/auth_themes/clean"
 
 var Auth = clean.New(&auth.Config{
 	DB:         db.DB,
@@ -188,10 +188,10 @@ var Auth = clean.New(&auth.Config{
 })
 ```
 
-Check Auth Theme's [document](https://github.com/qor/auth_themes) for How To use/create Auth themes
+Check Auth Theme's [document](https://github.com/simonedbarber/auth_themes) for How To use/create Auth themes
 
 ### Authorization
 
 `Authentication` is the process of verifying who you are, `Authorization` is the process of verifying that you have access to something.
 
-Auth package not only provides `Authentication`, but also `Authorization`, please checkout [authority](https://github.com/qor/auth/tree/master/authority) for more details
+Auth package not only provides `Authentication`, but also `Authorization`, please checkout [authority](https://github.com/simonedbarber/auth/tree/master/authority) for more details

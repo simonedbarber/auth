@@ -1,16 +1,19 @@
 package password
 
 import (
-	"html/template"
 	"net/http"
 	"strings"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/auth/providers/password/encryptor"
-	"github.com/qor/auth/providers/password/encryptor/bcrypt_encryptor"
-	"github.com/qor/session"
+	"github.com/simonedbarber/go-template/html/template"
+
+	"errors"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/auth/providers/password/encryptor"
+	"github.com/simonedbarber/auth/providers/password/encryptor/bcrypt_encryptor"
+	"github.com/simonedbarber/session"
+	"gorm.io/gorm"
 )
 
 // Config password config
@@ -83,10 +86,10 @@ func (Provider) GetName() string {
 
 // ConfigAuth config auth
 func (provider Provider) ConfigAuth(auth *auth.Auth) {
-	auth.Render.RegisterViewPath("github.com/qor/auth/providers/password/views")
+	auth.Render.RegisterViewPath("github.com/simonedbarber/auth/providers/password/views")
 
 	if auth.Mailer != nil {
-		auth.Mailer.RegisterViewPath("github.com/qor/auth/providers/password/views/mailers")
+		auth.Mailer.RegisterViewPath("github.com/simonedbarber/auth/providers/password/views/mailers")
 	}
 }
 
@@ -136,7 +139,7 @@ func (provider Provider) ServeHTTP(context *auth.Context) {
 
 					authInfo.Provider = provider.GetName()
 					authInfo.UID = strings.TrimSpace(req.Form.Get("email"))
-					if tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).RecordNotFound() {
+					if err := tx.Model(context.Auth.AuthIdentityModel).Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).Scan(&authInfo).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 						err = auth.ErrInvalidAccount
 					}
 

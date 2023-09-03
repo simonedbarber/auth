@@ -2,18 +2,20 @@ package password
 
 import (
 	"errors"
-	"html/template"
 	"net/mail"
 	"path"
 	"reflect"
 	"time"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/mailer"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
+	"github.com/simonedbarber/go-template/html/template"
+
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/mailer"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"gorm.io/gorm"
 )
 
 var (
@@ -78,7 +80,7 @@ var DefaultConfirmHandler = func(context *auth.Context) error {
 			authInfo.UID = claims.Id
 			authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 
-			if tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).First(authIdentity).RecordNotFound() {
+			if err := tx.Where("provider = ? AND uid = ?", authInfo.Provider, authInfo.UID).First(authIdentity).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				err = auth.ErrInvalidAccount
 			}
 
@@ -86,7 +88,7 @@ var DefaultConfirmHandler = func(context *auth.Context) error {
 				if authInfo.ConfirmedAt == nil {
 					now := time.Now()
 					authInfo.ConfirmedAt = &now
-					if err = tx.Model(authIdentity).Update(authInfo).Error; err == nil {
+					if err = tx.Model(authIdentity).Updates(authInfo).Error; err == nil {
 						context.SessionStorer.Flash(context.Writer, context.Request, session.Message{Message: ConfirmedAccountFlashMessage, Type: "success"})
 						context.Auth.Redirector.Redirect(context.Writer, context.Request, "confirm")
 						return nil

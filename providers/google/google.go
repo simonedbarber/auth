@@ -9,12 +9,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/auth"
+	"github.com/simonedbarber/auth/auth_identity"
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/qor/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"gorm.io/gorm"
 )
 
 var UserInfoURL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -116,7 +117,7 @@ func New(config *Config) *GoogleProvider {
 				authInfo.Provider = provider.GetName()
 				authInfo.UID = schema.UID
 
-				if !tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).RecordNotFound() {
+				if err := tx.Model(authIdentity).Where(authInfo).Scan(&authInfo).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 					return authInfo.ToClaims(), nil
 				}
 

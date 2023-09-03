@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/md5"
 	"fmt"
-	"html/template"
 	"mime"
 	"net/http"
 	"path"
@@ -11,9 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qor/auth/claims"
-	"github.com/qor/responder"
-	"github.com/qor/session"
+	"github.com/simonedbarber/go-template/html/template"
+
+	"github.com/simonedbarber/auth/claims"
+	"github.com/simonedbarber/responder"
+	"github.com/simonedbarber/session"
 )
 
 func respondAfterLogged(claims *claims.Claims, context *Context) {
